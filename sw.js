@@ -1,7 +1,7 @@
 'use strict';
 // オフラインでも開けるようにアプリ一式をキャッシュする（出先の圏外対策）。
 // 更新時は app.js の VERSION と合わせてここを変える。
-const CACHE = 'paper-1.0.0';
+const CACHE = 'paper-1.0.1';
 const FILES = ['./', 'index.html', 'app.js', 'style.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

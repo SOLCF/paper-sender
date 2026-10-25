@@ -2,7 +2,7 @@
 // M5PaperS3 へ画像を送る。540x960・4bit グレーにして PackBits 圧縮、Web Bluetooth で転送。
 // 受け側は F:\Claude\m5paper-calendar\src\image_rx.cpp
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const W = 540, H = 960;
 const SVC = '6b2f0000-3c1e-4f7a-9d2a-5e0c4a1b7d10';
 const CTRL = '6b2f0001-3c1e-4f7a-9d2a-5e0c4a1b7d10';
@@ -197,7 +197,8 @@ async function send() {
       await sleep(150);
       info = await readCtrl(ctrl);
     }
-    const chunk = Math.max(16, Math.min(info.mtu, 517) - 3 - 4);
+    // 1回の書き込みは MTU-3 かつ 512 バイトまで（先頭4バイトは offset）
+    const chunk = Math.max(16, Math.min(info.mtu - 3, 512) - 4);
 
     await ctrl.writeValueWithResponse(new Uint8Array([0x53]));  // 'S'
     const t0 = performance.now();
@@ -250,5 +251,12 @@ async function loadShared() {
   }
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+  // 新しい版が入ったら読み込み直す（初回インストール時は除く）
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !img) location.reload();
+  });
+  navigator.serviceWorker.register('sw.js');
+}
 loadShared();
