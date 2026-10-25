@@ -1,7 +1,7 @@
 'use strict';
-// オフラインでも開けるようにアプリ一式をキャッシュする（出先の圏外対策）。
+// 圏外でも開けるようにアプリ一式をキャッシュする。普段はネットから最新を取る。
 // 更新時は app.js の VERSION と合わせてここを変える。
-const CACHE = 'paper-1.0.1';
+const CACHE = 'paper-1.0.2';
 const FILES = ['./', 'index.html', 'app.js', 'style.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -32,7 +32,20 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then((r) => r || fetch(e.request))
-  );
+  // つながるときは最新を取りに行き（3秒まで）、圏外ならキャッシュを使う
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    try {
+      const res = await Promise.race([
+        fetch(e.request, { cache: 'no-cache' }),
+        new Promise((_, ng) => setTimeout(() => ng(new Error('timeout')), 3000)),
+      ]);
+      if (res.ok && url.origin === location.origin) cache.put(e.request, res.clone());
+      return res;
+    } catch (err) {
+      const hit = await caches.match(e.request, { ignoreSearch: true });
+      if (hit) return hit;
+      throw err;
+    }
+  })());
 });

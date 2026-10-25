@@ -2,7 +2,7 @@
 // M5PaperS3 へ画像を送る。540x960・4bit グレーにして PackBits 圧縮、Web Bluetooth で転送。
 // 受け側は F:\Claude\m5paper-calendar\src\image_rx.cpp
 
-const VERSION = '1.0.1';
+const VERSION = '1.0.2';
 const W = 540, H = 960;
 const SVC = '6b2f0000-3c1e-4f7a-9d2a-5e0c4a1b7d10';
 const CTRL = '6b2f0001-3c1e-4f7a-9d2a-5e0c4a1b7d10';
